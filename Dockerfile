@@ -22,18 +22,21 @@ ENV LANG=en_US.utf-8
 ENV LC_ALL=en_US.UTF-8
 ENV TZ=CET
 
+# Gradle im Container installieren
+RUN apk add --no-cache gradle
+
 COPY ["src", "/work/app/src"]
 COPY ["gradle", "/work/app/gradle"]
-COPY ["gradlew", "build.gradle", "settings.gradle", "/work/app/"]
-
-COPY --from=webapp-builder ["/home/node/app/build", "/work/app/src/main/resources/static"]
+COPY ["build.gradle", "settings.gradle", "/work/app/"]
 
 WORKDIR /work/app
 
 ARG VERSION=0.0.0
 
-RUN ./gradlew -i build -PprojectVersion=${VERSION} --no-daemon
+# Statt ./gradlew → systemweites gradle
+RUN gradle -i build -PprojectVersion=${VERSION} --no-daemon
 
+# zplbox.jar platzieren
 RUN rm /work/app/build/libs/*-plain.jar \
     && cp /work/app/build/libs/*.jar /work/app/build/libs/zplbox.jar
 
